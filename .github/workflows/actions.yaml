@@ -1,0 +1,93 @@
+name: actions
+
+on:
+  push:
+    branches-ignore:
+      - 'ga-ignore-*'
+  pull_request:
+    branches-ignore:
+      - 'ga-ignore-*'
+
+env:
+  EXECUTABLES: "blackjack"
+
+jobs:
+  check_coding_style:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📏 Coding Style
+        run: |
+          docker run --rm --security-opt "label:disable" -i \
+            -v "$(pwd)":"/mnt/delivery" \
+            -v "$(pwd)":"/mnt/reports" \
+            ghcr.io/epitech/coding-style-checker:latest \
+            "/mnt/delivery" "/mnt/reports"
+
+      - name: 🚨 Check Coding Style Report
+        run: |
+          if [ -s "coding-style-reports.log" ]; then
+            echo "Coding style errors found:"
+            cat coding-style-reports.log
+            exit 1
+          fi
+
+  check_program_compilation:
+    runs-on: ubuntu-latest
+    needs: check_coding_style
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configure CMake
+        run: |
+           cmake -B build -S .
+
+      - name: 🛠️ Build
+        run: |
+          cmake --build build -- -j
+        timeout-minutes: 2
+
+      - name: 🔍 Check Executables
+        run: |
+          for executable in $(echo $EXECUTABLES | tr ',' ' '); do
+            if [ ! -x "$executable" ]; then
+              echo "❌ $executable is missing or not executable"
+              exit 1
+            fi
+          done
+
+      - name : ✅ Upload Compiled Data
+        uses: actions/upload-artifact@v4
+        with:
+          name: data
+          path: |
+            ./build/
+            ./${{ env.EXECUTABLES }}
+          retention-days: 1
+
+  check_functionnal_tests:
+    runs-on: ubuntu-latest
+    needs: check_program_compilation
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Download Compiled Data
+        uses: actions/download-artifact@v4
+        with:
+          name: data
+          path: .
+
+      - name: 💾 Make Executable Download Data
+        run: chmod +x ./build ./${{ env.EXECUTABLES }}
+
+      - name: 🧪 Run Functionnal Tests
+        run: tests/functional_tests/tester.sh ./${{ env.EXECUTABLES }}
+        timeout-minutes: 10

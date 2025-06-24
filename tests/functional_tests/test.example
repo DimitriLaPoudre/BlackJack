@@ -1,0 +1,13 @@
+[1]
+NAME=Fake Test
+DESC=Not a real test for binary
+SETUP=echo "Setting up test environment"
+CLEAN=echo "Cleaning up test environment"
+ARGS=--help
+INPUT=
+input send into binary
+OUTPUT=
+output excepted by binary
+
+CODE=0
+[1-END]
