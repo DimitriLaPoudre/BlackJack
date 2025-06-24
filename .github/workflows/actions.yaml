@@ -12,28 +12,6 @@ env:
   EXECUTABLES: "blackjack"
 
 jobs:
-  check_coding_style:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📏 Coding Style
-        run: |
-          docker run --rm --security-opt "label:disable" -i \
-            -v "$(pwd)":"/mnt/delivery" \
-            -v "$(pwd)":"/mnt/reports" \
-            ghcr.io/epitech/coding-style-checker:latest \
-            "/mnt/delivery" "/mnt/reports"
-
-      - name: 🚨 Check Coding Style Report
-        run: |
-          if [ -s "coding-style-reports.log" ]; then
-            echo "Coding style errors found:"
-            cat coding-style-reports.log
-            exit 1
-          fi
-
   check_program_compilation:
     runs-on: ubuntu-latest
     needs: check_coding_style

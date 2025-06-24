@@ -26,7 +26,8 @@ void Blackjack::shell(void)
                 continue;
             }
             if (shellCommand.find(command) == shellCommand.end()) {
-                std::cout << "Unknown command: " << command << ". Type 'help' for available commands." << std::endl;
+                std::cout << "Unknown command: " << command
+                          << ". Type 'help' for available commands." << std::endl;
                 continue;
             } else {
                 (this->*shellCommand[command])(iss);
