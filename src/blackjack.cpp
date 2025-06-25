@@ -72,19 +72,19 @@ void Blackjack::drawCard(std::map<Card, size_t> &hand, char &card)
 
 void Blackjack::showHand(std::map<Card, size_t> &hand)
 {
-    if (&hand == &dealerHand) {
-        std::cout << "Dealer Hand after draw: ";
-    } else {
-        for (size_t i = 0; i < playersHand.size(); i++) {
-            if (&hand == &playersHand[i]) {
-                std::cout << "Player " << (i + 1) << " Hand after draw: ";
-                break;
-            }
+    for (auto &[key, value] : hand) {
+        if (value == 0) {
+            continue;
         }
+        std::cout << static_cast<size_t>(key) << ": x" << value << std::endl;
     }
+}
 
+size_t Blackjack::countPoints(std::map<Card, size_t> &hand, size_t *aceHighTmp)
+{
     size_t points = 0;
     size_t aceHigh = 0;
+
     for (auto &[key, value] : hand) {
         if (value == 0) {
             continue;
@@ -98,7 +98,25 @@ void Blackjack::showHand(std::map<Card, size_t> &hand)
         points -= 10;
         aceHigh--;
     }
-    std::cout << points << std::endl;
+    if (aceHighTmp) {
+        *aceHighTmp = aceHigh;
+    }
+    return points;
+}
+
+void Blackjack::showPoints(std::map<Card, size_t> &hand)
+{
+    if (&hand == &dealerHand) {
+        std::cout << "Dealer";
+    } else {
+        for (size_t i = 0; i < playersHand.size(); i++) {
+            if (&hand == &playersHand[i]) {
+                std::cout << "Player " << (i + 1);
+                break;
+            }
+        }
+    }
+    std::cout << " Hand after draw: " << countPoints(hand) << std::endl;
 }
 
 void Blackjack::shuffleDeck(std::istringstream &args)
@@ -127,7 +145,7 @@ void Blackjack::dealerDrawCard(std::istringstream &args)
     for (auto &card : cards) {
         drawCard(dealerHand, card);
     }
-    showHand(dealerHand);
+    showPoints(dealerHand);
 }
 
 void Blackjack::playerDrawCard(std::istringstream &args)
@@ -148,7 +166,7 @@ void Blackjack::playerDrawCard(std::istringstream &args)
     for (auto &card : cards) {
         drawCard(playersHand[player - 1], card);
     }
-    showHand(playersHand[player - 1]);
+    showPoints(playersHand[player - 1]);
 }
 
 void Blackjack::exitShell(std::istringstream &args)

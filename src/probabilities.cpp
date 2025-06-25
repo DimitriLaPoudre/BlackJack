@@ -105,27 +105,45 @@ void Blackjack::calculateSimpleProbabilities(size_t points, size_t aceHigh,
     resultProbabilities[4] /= static_cast<double>(nbCard);
 }
 
+void Blackjack::showDealderProbabilities(void)
+{
+    std::cout << "Probabilities for Dealer:" << std::endl;
+    std::cout << "Hand:" << std::endl;
+    showHand(dealerHand);
+    std::cout << "Simple Probabilities to get: " << std::endl;
+    size_t points = 0;
+    size_t aceHigh = 0;
+    points = countPoints(dealerHand, &aceHigh);
+    std::map<Card, size_t> newDeck(deck);
+    size_t nbCard = 0;
+    for (auto &[key, value] : newDeck) {
+        nbCard += value;
+    }
+    std::array<double, 5> probabilities = {};
+    calculateSimpleProbabilities(points, aceHigh, newDeck, nbCard, probabilities);
+    for (size_t i = 0; i < 5; i++) {
+        std::cout << 17 + i << ": " << std::fixed << probabilities[i] << std::endl;
+    }
+    std::cout << "No-Bust: " << std::fixed
+              << (probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]
+                  + probabilities[4])
+              << std::endl;
+    std::cout << "Bust: " << std::fixed
+              << 1.0
+                 - (probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]
+                    + probabilities[4])
+              << std::endl;
+}
+
 void Blackjack::showPlayerProbabilities(size_t player)
 {
     std::cout << std::endl << "Info Player " << player << ":" << std::endl;
+    std::cout << "Hand:" << std::endl;
+    showHand(playersHand[player - 1]);
+    std::cout << "Probabilities (Simple -> Real) to get: " << std::endl;
     size_t points = 0;
     size_t aceHigh = 0;
-    std::cout << "Hand:" << std::endl;
-    for (auto &[key, value] : playersHand[player - 1]) {
-        if (value == 0) {
-            continue;
-        }
-        points += static_cast<size_t>(key) * value;
-        if (key == Card::Ace) {
-            aceHigh = value;
-        }
-        std::cout << static_cast<size_t>(key) << " x" << value << std::endl;
-    }
-    while (points > 21 && aceHigh > 0) {
-        points -= 10;
-        aceHigh--;
-    }
-    std::cout << "Probabilities (Simple -> Real) to get: " << std::endl;
+    points = countPoints(playersHand[player - 1], &aceHigh);
     std::map<Card, size_t> newDeck(deck);
     size_t nbCard = 0;
     for (auto &[key, value] : deck) {
@@ -165,52 +183,11 @@ void Blackjack::showInfo(std::istringstream &args)
     }
 
     std::cout << "Deck cards:" << std::endl;
-    for (auto &[key, value] : deck) {
-        if (value == 0) {
-            continue;
-        }
-        std::cout << static_cast<size_t>(key) << ": x" << value << std::endl;
-    }
+    showHand(deck);
     std::cout << std::endl;
 
-    std::cout << "Probabilities for Dealer:" << std::endl;
-    size_t points = 0;
-    size_t aceHigh = 0;
-    std::cout << "Hand:" << std::endl;
-    for (auto &[key, value] : dealerHand) {
-        if (value == 0) {
-            continue;
-        }
-        points += static_cast<size_t>(key) * value;
-        if (key == Card::Ace) {
-            aceHigh = value;
-        }
-        std::cout << static_cast<size_t>(key) << " x" << value << std::endl;
-    }
-    while (points > 21 && aceHigh > 0) {
-        points -= 10;
-        aceHigh--;
-    }
-    std::cout << "Simple Probabilities to get: " << std::endl;
-    std::map<Card, size_t> newDeck(deck);
-    size_t nbCard = 0;
-    for (auto &[key, value] : newDeck) {
-        nbCard += value;
-    }
-    std::array<double, 5> probabilities = {};
-    calculateSimpleProbabilities(points, aceHigh, newDeck, nbCard, probabilities);
-    for (size_t i = 0; i < 5; i++) {
-        std::cout << 17 + i << ": " << std::fixed << probabilities[i] << std::endl;
-    }
-    std::cout << "No-Bust: " << std::fixed
-              << (probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]
-                  + probabilities[4])
-              << std::endl;
-    std::cout << "Bust: " << std::fixed
-              << 1.0
-                 - (probabilities[0] + probabilities[1] + probabilities[2] + probabilities[3]
-                    + probabilities[4])
-              << std::endl;
+    showDealderProbabilities();
+
     if (player > 0) {
         if (player - 1 >= playersHand.size()) {
             std::cerr << "Invalid player number." << std::endl;

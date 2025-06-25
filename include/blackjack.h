@@ -46,6 +46,9 @@ private:
     std::map<char, Card> cardSign;
     void drawCard(std::map<Card, size_t> &hand, char &card);
     void showHand(std::map<Card, size_t> &hand);
+    size_t countPoints(std::map<Card, size_t> &hand, size_t *aceHighTmp = NULL);
+    void showPoints(std::map<Card, size_t> &hand);
+    void showDealderProbabilities(void);
     void showPlayerProbabilities(size_t player);
     void calculateRealProbabilities(size_t points, size_t aceHigh, std::map<Card, size_t> &deck,
                                     size_t nbCard, std::array<double, 5> &resultProbabilities);
